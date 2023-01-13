@@ -115,7 +115,7 @@
 		18627C6E29052BDF00BD2A04 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = 1;
+				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1400;
 				TargetAttributes = {
 					18627C7529052BDF00BD2A04 = {
@@ -244,7 +244,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -296,6 +296,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -308,10 +309,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = P8JZH34X63;
+				DEVELOPMENT_TEAM = 73KM58G4L7;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = whisper.objc/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app requires microphone access in order to transcribe speech";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -322,7 +324,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ggerganov.whisper-objc";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jkeddo.tests.whisper-cpp-port";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -336,10 +338,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = P8JZH34X63;
+				DEVELOPMENT_TEAM = 73KM58G4L7;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = whisper.objc/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app requires microphone access in order to transcribe speech";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -350,7 +353,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.ggerganov.whisper-objc";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jkeddo.tests.whisper-cpp-port";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
