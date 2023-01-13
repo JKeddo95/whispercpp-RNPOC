@@ -229,6 +229,7 @@ void AudioInputCallback(void * inUserData,
             result = [result stringByAppendingString:[NSString stringWithUTF8String:text_cur]];
         }
 
+        // TODOJ: Ensure this can never divide by zero.
         const float tRecording = (float)self->stateInp.n_samples / (float)self->stateInp.dataFormat.mSampleRate;
 
         // append processing time
