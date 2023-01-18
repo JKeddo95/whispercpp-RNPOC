@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![npm](https://img.shields.io/npm/v/whisper.cpp.svg)](https://www.npmjs.com/package/whisper.cpp/)
 
-[Roadmap | F.A.Q.](https://github.com/ggerganov/whisper.cpp/discussions/126)
+Stable: [v1.0.4](https://github.com/ggerganov/whisper.cpp/releases/tag/v1.0.4) / Beta: [v1.1.0](https://github.com/ggerganov/whisper.cpp/releases/tag/v1.1.0) / [Roadmap | F.A.Q.](https://github.com/ggerganov/whisper.cpp/discussions/126)
 
 High-performance inference of [OpenAI's Whisper](https://github.com/openai/whisper) automatic speech recognition (ASR) model:
 
@@ -89,27 +89,36 @@ c++ -I. -I./examples -O3 -std=c++11 -pthread examples/main/main.cpp whisper.o gg
 usage: ./main [options] file0.wav file1.wav ...
 
 options:
-  -h,       --help          [default] show this help message and exit
-  -t N,     --threads N     [4      ] number of threads to use during computation
-  -p N,     --processors N  [1      ] number of processors to use during computation
-  -ot N,    --offset-t N    [0      ] time offset in milliseconds
-  -on N,    --offset-n N    [0      ] segment index offset
-  -d  N,    --duration N    [0      ] duration of audio to process in milliseconds
-  -mc N,    --max-context N [-1     ] maximum number of text context tokens to store
-  -ml N,    --max-len N     [0      ] maximum segment length in characters
-  -wt N,    --word-thold N  [0.01   ] word timestamp probability threshold
-  -su,      --speed-up      [false  ] speed up audio by x2 (reduced accuracy)
-  -tr,      --translate     [false  ] translate from source language to english
-  -otxt,    --output-txt    [false  ] output result in a text file
-  -ovtt,    --output-vtt    [false  ] output result in a vtt file
-  -osrt,    --output-srt    [false  ] output result in a srt file
-  -owts,    --output-words  [false  ] output script for generating karaoke video
-  -ps,      --print-special [false  ] print special tokens
-  -pc,      --print-colors  [false  ] print colors
-  -nt,      --no-timestamps [true   ] do not print timestamps
-  -l LANG,  --language LANG [en     ] spoken language
-  -m FNAME, --model FNAME   [models/ggml-base.en.bin] model path
-  -f FNAME, --file FNAME    [       ] input WAV file path
+  -h,       --help            [default] show this help message and exit
+  -t N,     --threads N       [4      ] number of threads to use during computation
+  -p N,     --processors N    [1      ] number of processors to use during computation
+  -ot N,    --offset-t N      [0      ] time offset in milliseconds
+  -on N,    --offset-n N      [0      ] segment index offset
+  -d  N,    --duration N      [0      ] duration of audio to process in milliseconds
+  -mc N,    --max-context N   [-1     ] maximum number of text context tokens to store
+  -ml N,    --max-len N       [0      ] maximum segment length in characters
+  -bo N,    --best-of N       [5      ] number of best candidates to keep
+  -bs N,    --beam-size N     [-1     ] beam size for beam search
+  -wt N,    --word-thold N    [0.01   ] word timestamp probability threshold
+  -et N,    --entropy-thold N [2.40   ] entropy threshold for decoder fail
+  -lpt N,   --logprob-thold N [-1.00  ] log probability threshold for decoder fail
+  -su,      --speed-up        [false  ] speed up audio by x2 (reduced accuracy)
+  -tr,      --translate       [false  ] translate from source language to english
+  -di,      --diarize         [false  ] stereo audio diarization
+  -otxt,    --output-txt      [false  ] output result in a text file
+  -ovtt,    --output-vtt      [false  ] output result in a vtt file
+  -osrt,    --output-srt      [false  ] output result in a srt file
+  -owts,    --output-words    [false  ] output script for generating karaoke video
+  -ocsv,    --output-csv      [false  ] output result in a CSV file
+  -ps,      --print-special   [false  ] print special tokens
+  -pc,      --print-colors    [false  ] print colors
+  -pp,      --print-progress  [false  ] print progress
+  -nt,      --no-timestamps   [true   ] do not print timestamps
+  -l LANG,  --language LANG   [en     ] spoken language ('auto' for auto-detect)
+            --prompt PROMPT   [       ] initial prompt
+  -m FNAME, --model FNAME     [models/ggml-base.en.bin] model path
+  -f FNAME, --file FNAME      [       ] input WAV file path
+
 
 bash ./models/download-ggml-model.sh base.en
 Downloading ggml model base.en ...
@@ -212,17 +221,7 @@ make large
 ## Limitations
 
 - Inference only
-- No GPU support
-- Very basic greedy sampling scheme - always pick up the token with highest probability.
-  This should be similar to the [GreedyDecoder](https://github.com/openai/whisper/blob/main/whisper/decoding.py#L249-L274)
-  from the original python implementation, so in order to make a fair comparison between the 2 implementations, make sure
-  to run the python code with the following parameters:
-
-  ```
-  whisper --best_of None --beam_size None ...
-  ```
-
-  In the future, `whisper.cpp` will support more sampling strategies.
+- No GPU support (yet)
 
 ## Another example
 
