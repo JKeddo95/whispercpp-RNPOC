@@ -10,13 +10,13 @@
 		18627C7B29052BDF00BD2A04 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 18627C7A29052BDF00BD2A04 /* AppDelegate.m */; };
 		18627C7E29052BDF00BD2A04 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 18627C7D29052BDF00BD2A04 /* SceneDelegate.m */; };
 		18627C8129052BDF00BD2A04 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 18627C8029052BDF00BD2A04 /* ViewController.m */; };
-		18627C8429052BDF00BD2A04 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18627C8229052BDF00BD2A04 /* Main.storyboard */; };
 		18627C8629052BE000BD2A04 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18627C8529052BE000BD2A04 /* Assets.xcassets */; };
 		18627C8929052BE000BD2A04 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18627C8729052BE000BD2A04 /* LaunchScreen.storyboard */; };
 		18627C8C29052BE000BD2A04 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 18627C8B29052BE000BD2A04 /* main.m */; };
 		18627C9429052C4900BD2A04 /* whisper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18627C9329052C4900BD2A04 /* whisper.cpp */; };
 		18627C9629052C5800BD2A04 /* ggml.c in Sources */ = {isa = PBXBuildFile; fileRef = 18627C9529052C5800BD2A04 /* ggml.c */; settings = {COMPILER_FLAGS = "-DGGML_USE_ACCELERATE"; }; };
 		18627C9B29052CFF00BD2A04 /* ggml-base.en.bin in Resources */ = {isa = PBXBuildFile; fileRef = 18627C9A29052CFF00BD2A04 /* ggml-base.en.bin */; };
+		31F5740929B3F0D30084706A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 31F5740729B3F0D20084706A /* Main.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +37,7 @@
 		18627C9529052C5800BD2A04 /* ggml.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ggml.c; path = ../../../ggml.c; sourceTree = "<group>"; };
 		18627C9729052C6600BD2A04 /* ggml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ggml.h; path = ../../../ggml.h; sourceTree = "<group>"; };
 		18627C9A29052CFF00BD2A04 /* ggml-base.en.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "ggml-base.en.bin"; path = "../../../models/ggml-base.en.bin"; sourceTree = "<group>"; };
+		31F5740829B3F0D20084706A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = whisper.objc/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +54,7 @@
 		18627C6D29052BDF00BD2A04 = {
 			isa = PBXGroup;
 			children = (
+				31F5740729B3F0D20084706A /* Main.storyboard */,
 				18627C7829052BDF00BD2A04 /* whisper.objc */,
 				18627C7729052BDF00BD2A04 /* Products */,
 			);
@@ -146,9 +148,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				31F5740929B3F0D30084706A /* Main.storyboard in Resources */,
 				18627C8929052BE000BD2A04 /* LaunchScreen.storyboard in Resources */,
 				18627C8629052BE000BD2A04 /* Assets.xcassets in Resources */,
-				18627C8429052BDF00BD2A04 /* Main.storyboard in Resources */,
 				18627C9B29052CFF00BD2A04 /* ggml-base.en.bin in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -186,6 +188,14 @@
 				18627C8829052BE000BD2A04 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		31F5740729B3F0D20084706A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				31F5740829B3F0D20084706A /* Base */,
+			);
+			name = Main.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
