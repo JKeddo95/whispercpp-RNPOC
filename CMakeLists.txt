@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
 
-project(whisper.cpp VERSION 1.1.0)
+project(whisper.cpp VERSION 1.2.1)
 
 # Add path to modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -226,10 +226,13 @@ target_compile_definitions(${TARGET} PUBLIC
     ${WHISPER_EXTRA_FLAGS}
     )
 
+set_target_properties(${TARGET} PROPERTIES PUBLIC_HEADER "whisper.h")
+
 install(TARGETS ${TARGET}
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib/static
     RUNTIME DESTINATION bin
+    PUBLIC_HEADER DESTINATION include
     )
 
 #
@@ -242,7 +245,7 @@ add_subdirectory(bindings)
 # programs, examples and tests
 #
 
-if (WHISPER_BUILD_TESTS)
+if (WHISPER_BUILD_TESTS AND NOT CMAKE_JS_VERSION)
     enable_testing()
     add_subdirectory(tests)
 endif ()
