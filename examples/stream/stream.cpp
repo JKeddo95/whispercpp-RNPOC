@@ -341,10 +341,20 @@ int main(int argc, char ** argv) {
                         const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
                         const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
 
-                        printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
+                        time_t current_time;
+                        char* c_time_string;
+
+                        current_time = time(NULL);
+
+                        /* Convert to local time format. */
+                        c_time_string = ctime(&current_time);
+
+                        // printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
+
+                        printf("\n%s%s", c_time_string, text);
 
                         if (params.fname_out.length() > 0) {
-                            fout << "[" << to_timestamp(t0) << " --> " << to_timestamp(t1) << "]  " << text << std::endl;
+                            fout << c_time_string << text << std::endl;
                         }
                     }
                 }
