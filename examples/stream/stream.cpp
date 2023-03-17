@@ -18,8 +18,31 @@
 // Terminal color map. 10 colors grouped in ranges [0.0, 0.1, ..., 0.9]
 // Lowest is red, middle is yellow, highest is green.
 const std::vector<std::string> k_colors = {
-    "\033[38;5;196m", "\033[38;5;202m", "\033[38;5;208m", "\033[38;5;214m", "\033[38;5;220m",
-    "\033[38;5;226m", "\033[38;5;190m", "\033[38;5;154m", "\033[38;5;118m", "\033[38;5;82m",
+    "\e[38;5;169m", // light red
+    "\e[38;5;169m", // light red
+    "\e[38;5;179m", // light orange
+    "\e[38;5;179m", // light orange
+    "\e[38;5;229m", // yellow
+    "\e[38;5;229m", // yellow
+    "\e[38;5;120m", // light yellow-green
+    "\e[38;5;120m", // light yellow-green
+    "\e[38;5;10m", // light green
+    "\e[38;5;10m", // light green
+};
+
+// File color map. 10 colors grouped in ranges [0.0, 0.1, ..., 0.9]
+// Lowest is red, middle is yellow, highest is green.
+const std::vector<std::string> k_colors_html = {
+    "<span style=\"color:#FFD2D2;\">", // light red
+    "<span style=\"color:#FFD2D2;\">", // light red
+    "<span style=\"color:#FFE8D2;\">", // light orange
+    "<span style=\"color:#FFE8D2;\">", // light orange
+    "<span style=\"color:#FFFFD2;\">", // yellow
+    "<span style=\"color:#FFFFD2;\">", // yellow
+    "<span style=\"color:#F4FFD2;\">", // light yellow green
+    "<span style=\"color:#F4FFD2;\">", // light yellow green
+    "<span style=\"color:#DDFFD2;\">", // light green
+    "<span style=\"color:#DDFFD2;\">", // light green
 };
 
 //  500 -> 00:05.000
@@ -343,10 +366,35 @@ int main(int argc, char ** argv) {
                 }
 
                 const int n_segments = whisper_full_n_segments(ctx);
+
+                if (params.fname_out.length() > 0) { //output as html
+                    fout << "<html><body style=\"background-color:black;\">" << std::endl;
+                }
+
                 for (int i = 0; i < n_segments; ++i) {
 
                     if (params.print_colors) {
+
+                        auto now = std::chrono::system_clock::now();
+                        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+
+
+
+                        // Output formatted time string. Jibreel's code.
+                        time_t current_time;
+                        char* c_time_string;
+                        current_time = time(NULL);
+                        c_time_string = ctime(&current_time);
+                        char *t = ctime(&current_time);
+                        if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0';
+                        if (params.fname_out.length() > 0) {
+                            fout << "\n<br><div><span style=\"color:#D6FFD1;\">" << t << "</span>";
+                        }
+
+
                         for (int j = 0; j < whisper_full_n_tokens(ctx, i); ++j) {
+
+                            
                             if (params.print_special == false) {
                                 const whisper_token id = whisper_full_get_token_id(ctx, i, j);
                                 if (id >= whisper_token_eot(ctx)) {
@@ -357,10 +405,26 @@ int main(int argc, char ** argv) {
                             const char * ttext = whisper_full_get_token_text(ctx, i, j);
                             const float  p    = whisper_full_get_token_p   (ctx, i, j);
                             const int col = std::max(0, std::min((int) k_colors.size() - 1, (int) (pow(p, 3)*float(k_colors.size()))));
-                            printf ("%s%s%s", k_colors[col].c_str(), ttext, "\033[0m");
+                            if (j == 1){
+                                printf("\n\n%s%s%s%s", t, k_colors[col].c_str(), ttext, "\033[0m");
+                            }else{
+                                printf ("%s%s%s", k_colors[col].c_str(), ttext, "\033[0m");
+                            }
+
+
+
+                            if (params.fname_out.length() > 0) {
+                                fout << k_colors_html[col] << ttext << "</span>";
+                            }
 
                         }
-                        const char * stext = whisper_full_get_segment_text(ctx, i);
+
+
+
+                        if (params.fname_out.length() > 0) {
+                            fout << "</div>" << std::endl;
+                        }
+                        // const char * stext = whisper_full_get_segment_text(ctx, i);
 
 
                         // printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
@@ -373,11 +437,11 @@ int main(int argc, char ** argv) {
                         // printf("\n%s%s", c_time_string, text);
                         // //
 
-                        if (params.fname_out.length() > 0) {
-                            std::time_t now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                            fout << "[" << std::put_time(std::localtime(&now_c), "%F %T") << "]  ";
-                            fout << stext << std::endl;
-                        }
+                        // if (params.fname_out.length() > 0) {
+                        //     std::time_t now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+                        //     fout << "[" << std::put_time(std::localtime(&now_c), "%F %T") << "]  ";
+                        //     fout << stext << std::endl;
+                        // }
                     }
                     else {
                         const char * text = whisper_full_get_segment_text(ctx, i);
@@ -403,7 +467,7 @@ int main(int argc, char ** argv) {
                     }
                 }
                 if (params.fname_out.length() > 0) {
-                    fout << std::endl;
+                    fout << "</body></html>" << std::endl;
                 }
 
                 if (use_vad){
