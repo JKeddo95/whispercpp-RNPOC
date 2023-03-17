@@ -14,7 +14,7 @@ do
   DESTINATION=""
   mkdir "/Users/jibreelkeddo/DailyLogs/Whispers/$TIMESTAMP_YEARMONTH/"
 
-  ./stream -m models/ggml-large.bin -t 8 -tr -f "/Users/jibreelkeddo/DailyLogs/Whispers/$TIMESTAMP_YEARMONTH/$FILENAME.txt" --step 55000 --length 60000 --keep 5000 &  # Run the script in the background
+  ./stream -m models/ggml-large.bin -t 8 -tr -pc -f "/Users/jibreelkeddo/DailyLogs/Whispers/$TIMESTAMP_YEARMONTH/$FILENAME.html" --step 55000 --length 60000 --keep 5000 &  # Run the script in the background
   sleep 1800  # Wait for 30 minutes
   echo "Killing the script..."
   pkill -f "./stream"  # Kill the process that matches the script name
