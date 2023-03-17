@@ -18,16 +18,16 @@
 // Terminal color map. 10 colors grouped in ranges [0.0, 0.1, ..., 0.9]
 // Lowest is red, middle is yellow, highest is green.
 const std::vector<std::string> k_colors = {
-    "\e[38;5;169m", // light red
-    "\e[38;5;169m", // light red
-    "\e[38;5;179m", // light orange
-    "\e[38;5;179m", // light orange
-    "\e[38;5;229m", // yellow
-    "\e[38;5;229m", // yellow
-    "\e[38;5;120m", // light yellow-green
-    "\e[38;5;120m", // light yellow-green
-    "\e[38;5;10m", // light green
-    "\e[38;5;10m", // light green
+    "\e[38;5;218m", // light red
+    "\e[38;5;218m", // light red
+    "\e[38;5;220m", // light orange
+    "\e[38;5;220m", // light orange
+    "\e[38;5;226m", // yellow
+    "\e[38;5;226m", // yellow
+    "\e[38;5;190m", // light yellow-green
+    "\e[38;5;190m", // light yellow-green
+    "\e[38;5;154m", // light green
+    "\e[38;5;154m", // light green
 };
 
 // File color map. 10 colors grouped in ranges [0.0, 0.1, ..., 0.9]
