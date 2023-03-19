@@ -82,6 +82,7 @@ struct whisper_params {
     std::string language  = "en";
     std::string model     = "models/ggml-base.en.bin";
     std::string fname_out;
+    std::string fname_out_html;
 };
 
 void whisper_print_usage(int argc, char ** argv, const whisper_params & params);
@@ -111,6 +112,7 @@ bool whisper_params_parse(int argc, char ** argv, whisper_params & params) {
         else if (arg == "-l"   || arg == "--language")      { params.language      = argv[++i]; }
         else if (arg == "-m"   || arg == "--model")         { params.model         = argv[++i]; }
         else if (arg == "-f"   || arg == "--file")          { params.fname_out     = argv[++i]; }
+        else if (arg == "-fh"   || arg == "--filehtml")          { params.fname_out_html     = argv[++i]; }
         else {
             fprintf(stderr, "error: unknown argument: %s\n", arg.c_str());
             whisper_print_usage(argc, argv, params);
@@ -144,6 +146,7 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
     fprintf(stderr, "  -l LANG,  --language LANG [%-7s] spoken language\n",                             params.language.c_str());
     fprintf(stderr, "  -m FNAME, --model FNAME   [%-7s] model path\n",                                  params.model.c_str());
     fprintf(stderr, "  -f FNAME, --file FNAME    [%-7s] text output file name\n",                       params.fname_out.c_str());
+    fprintf(stderr, "  -fh FNAMH, --file FNAMEH    [%-7s] html output file name\n",                       params.fname_out_html.c_str());
     fprintf(stderr, "\n");
 }
 
@@ -235,6 +238,15 @@ int main(int argc, char ** argv) {
         fout.open(params.fname_out);
         if (!fout.is_open()) {
             fprintf(stderr, "%s: failed to open output file '%s'!\n", __func__, params.fname_out.c_str());
+            return 1;
+        }
+    }
+
+    std::ofstream fouthtml;
+    if (params.fname_out_html.length() > 0) {
+        fouthtml.open(params.fname_out_html);
+        if (!fouthtml.is_open()) {
+            fprintf(stderr, "%s: failed to open output file '%s'!\n", __func__, params.fname_out_html.c_str());
             return 1;
         }
     }
@@ -367,8 +379,11 @@ int main(int argc, char ** argv) {
 
                 const int n_segments = whisper_full_n_segments(ctx);
 
-                if (params.fname_out.length() > 0) { //output as html
-                    fout << "<html><body style=\"background-color:black;\">" << std::endl;
+                if (params.fname_out.length() > 0) { //output as text
+                    fout << std::endl;
+                }
+                if (params.fname_out_html.length() > 0) { //output as html
+                    fouthtml << "<html><body style=\"background-color:black;\">" << std::endl;
                 }
 
                 for (int i = 0; i < n_segments; ++i) {
@@ -388,7 +403,10 @@ int main(int argc, char ** argv) {
                         char *t = ctime(&current_time);
                         if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0';
                         if (params.fname_out.length() > 0) {
-                            fout << "\n<br><div><span style=\"color:#D6FFD1;\">" << t << "</span>";
+                            fout << "\n[[" << t << "]]: ";
+                        }
+                        if (params.fname_out_html.length() > 0) {
+                            fouthtml << "\n<br><div><span style=\"color:#D6FFD1;\">[[" << t << "]]:</span> ";
                         }
 
 
@@ -414,7 +432,10 @@ int main(int argc, char ** argv) {
 
 
                             if (params.fname_out.length() > 0) {
-                                fout << k_colors_html[col] << ttext << "</span>";
+                                fout << ttext;
+                            }
+                            if (params.fname_out_html.length() > 0) {
+                                fouthtml << k_colors_html[col] << ttext << "</span>";
                             }
 
                         }
@@ -422,7 +443,10 @@ int main(int argc, char ** argv) {
 
 
                         if (params.fname_out.length() > 0) {
-                            fout << "</div>" << std::endl;
+                            fout << std::endl;
+                        }
+                        if (params.fname_out_html.length() > 0) {
+                            fouthtml << "</div>" << std::endl;
                         }
 
                     }
@@ -436,21 +460,29 @@ int main(int argc, char ** argv) {
                             if (params.fname_out.length() > 0) {
                                 fout << text;
                             }
+                            if (params.fname_out_html.length() > 0) {
+                                fouthtml << text;
+                            }
                         } else {
                             const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
                             const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
                             printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
+                            auto now = std::chrono::system_clock::now();
+                            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
                             if (params.fname_out.length() > 0) {
-                                // fout << "[" << to_timestamp(t0) << " --> " << to_timestamp(t1) << "]  " << text << std::endl;
-                                auto now = std::chrono::system_clock::now();
-                                std::time_t now_c = std::chrono::system_clock::to_time_t(now);
                                 fout << "[" << std::put_time(std::localtime(&now_c), "%F %T") << "]  " << text << std::endl;
+                            }
+                            if (params.fname_out_html.length() > 0) {
+                                fouthtml << "[" << std::put_time(std::localtime(&now_c), "%F %T") << "]  " << text << std::endl;
                             }
                         }
                     }
                 }
                 if (params.fname_out.length() > 0) {
-                    fout << "</body></html>" << std::endl;
+                    fout << std::endl;
+                }
+                if (params.fname_out_html.length() > 0) {
+                    fouthtml << "</body></html>" << std::endl;
                 }
 
                 if (use_vad){
