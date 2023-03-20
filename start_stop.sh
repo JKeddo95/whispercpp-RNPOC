@@ -4,7 +4,7 @@ while true
 do
   pkill -f "./stream"  # Kill the process that matches the script name
   pkill -f "stream"  # Kill the process that matches the script name
-  echo "Starting the whisper cpp..."
+  echo "Starting whisper cpp..."
 
   TIMESTAMP=`date "+%Y%m%d"`
   TIMESTAMP_YEARMONTH=`date "+%Y%m"`

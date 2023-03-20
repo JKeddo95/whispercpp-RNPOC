@@ -388,28 +388,11 @@ int main(int argc, char ** argv) {
 
                 for (int i = 0; i < n_segments; ++i) {
 
+
+                    auto timeAtSegment = std::chrono::system_clock::now();
+                    std::time_t timeAtSegment_c = std::chrono::system_clock::to_time_t(timeAtSegment);
+
                     if (params.print_colors) {
-
-                        auto now = std::chrono::system_clock::now();
-                        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-
-
-
-                        // Output formatted time string. Jibreel's code.
-                        time_t current_time;
-                        char* c_time_string;
-                        current_time = time(NULL);
-                        c_time_string = ctime(&current_time);
-                        char *t = ctime(&current_time);
-                        if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0';
-                        if (params.fname_out.length() > 0) {
-                            fout << "\n[[" << t << "]]: ";
-                        }
-                        if (params.fname_out_html.length() > 0) {
-                            fouthtml << "\n<br><div><span style=\"color:#D6FFD1;\">[[" << t << "]]:</span> ";
-                        }
-
-
                         for (int j = 0; j < whisper_full_n_tokens(ctx, i); ++j) {
 
                             
@@ -421,10 +404,28 @@ int main(int argc, char ** argv) {
                             }
 
                             const char * ttext = whisper_full_get_token_text(ctx, i, j);
-                            const float  p    = whisper_full_get_token_p   (ctx, i, j);
+                            const float p = whisper_full_get_token_p(ctx, i, j);
                             const int col = std::max(0, std::min((int) k_colors.size() - 1, (int) (pow(p, 3)*float(k_colors.size()))));
                             if (j == 1){
+
+                                time_t current_time;
+                                char* c_time_string;
+                                current_time = time(NULL);
+                                c_time_string = ctime(&current_time);
+                                
+                                // Add 30 seconds to current time if this is the second segment/half of a 60 second recording. 
+                                current_time += (i & 1) ? 30 : 0; // i & 1 is a bitwise AND operation -- Returns 1 if i is odd, 0 if i is even.
+                                char *t = ctime(&current_time);
+                                if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0';
+
+                                if (params.fname_out.length() > 0) {
+                                    fout << "\n[[" << t << "]]: ";
+                                }
+                                if (params.fname_out_html.length() > 0) {
+                                    fouthtml << "\n<br><div><span style=\"color:#D6FFD1;\">[[" << t << "]]:</span> ";
+                                }
                                 printf("\n\n%s%s%s%s", t, k_colors[col].c_str(), ttext, "\033[0m");
+
                             }else{
                                 printf ("%s%s%s", k_colors[col].c_str(), ttext, "\033[0m");
                             }
@@ -467,13 +468,11 @@ int main(int argc, char ** argv) {
                             const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
                             const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
                             printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
-                            auto now = std::chrono::system_clock::now();
-                            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
                             if (params.fname_out.length() > 0) {
-                                fout << "[" << std::put_time(std::localtime(&now_c), "%F %T") << "]  " << text << std::endl;
+                                fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
                             }
                             if (params.fname_out_html.length() > 0) {
-                                fouthtml << "[" << std::put_time(std::localtime(&now_c), "%F %T") << "]  " << text << std::endl;
+                                fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
                             }
                         }
                     }
