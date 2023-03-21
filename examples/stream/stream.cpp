@@ -257,6 +257,14 @@ int main(int argc, char ** argv) {
           auto t_last  = std::chrono::high_resolution_clock::now();
     const auto t_start = t_last;
 
+    if (params.fname_out.length() > 0) { //output as text
+        fout << std::endl;
+    }
+    if (params.fname_out_html.length() > 0) { //output as html
+        fouthtml << "<!DOCTYPE html><html><head><title>My Whispers</title></head>" << std::endl;
+        fouthtml << "<body><link rel='stylesheet' href='../pico.css'></link><div &nbsp data-theme='dark'>" << std::endl;
+    }
+
     // main audio loop
     while (is_running) {
         // handle Ctrl + C
@@ -379,13 +387,6 @@ int main(int argc, char ** argv) {
 
                 const int n_segments = whisper_full_n_segments(ctx);
 
-                if (params.fname_out.length() > 0) { //output as text
-                    fout << std::endl;
-                }
-                if (params.fname_out_html.length() > 0) { //output as html
-                    fouthtml << "<html><body style=\"background-color:black;\">" << std::endl;
-                }
-
                 for (int i = 0; i < n_segments; ++i) {
 
 
@@ -422,7 +423,7 @@ int main(int argc, char ** argv) {
                                     fout << "\n[[" << t << "]]: ";
                                 }
                                 if (params.fname_out_html.length() > 0) {
-                                    fouthtml << "\n<br><div><span style=\"color:#D6FFD1;\">[[" << t << "]]:</span> ";
+                                    fouthtml << "\n<br><div><i style=\"color:#D6FFD1;\">[[" << t << "]]:</i> ";
                                 }
                                 printf("\n\n%s%s%s%s", t, k_colors[col].c_str(), ttext, "\033[0m");
 
@@ -477,12 +478,6 @@ int main(int argc, char ** argv) {
                         }
                     }
                 }
-                if (params.fname_out.length() > 0) {
-                    fout << std::endl;
-                }
-                if (params.fname_out_html.length() > 0) {
-                    fouthtml << "</body></html>" << std::endl;
-                }
 
                 if (use_vad){
                     printf("\n");
@@ -515,6 +510,13 @@ int main(int argc, char ** argv) {
     }
 
     audio.pause();
+
+    if (params.fname_out.length() > 0) {
+        fout << std::endl;
+    }
+    if (params.fname_out_html.length() > 0) {
+        fouthtml << "</body></html>" << std::endl;
+    }
 
     whisper_print_timings(ctx);
     whisper_free(ctx);
