@@ -263,6 +263,7 @@ int main(int argc, char ** argv) {
     if (params.fname_out_html.length() > 0) { //output as html
         fouthtml << "<!DOCTYPE html><html><head><title>My Whispers</title></head>" << std::endl;
         fouthtml << "<body><link rel='stylesheet' href='../pico.css'></link><div &nbsp data-theme='dark'>" << std::endl;
+        fouthtml << "<h1>Your Whispers: Transcription Logs</h1>" << std::endl;
     }
 
     // main audio loop
@@ -410,20 +411,20 @@ int main(int argc, char ** argv) {
                             if (j == 1){
 
                                 time_t current_time;
-                                char* c_time_string;
                                 current_time = time(NULL);
-                                c_time_string = ctime(&current_time);
                                 
                                 // Add 30 seconds to current time if this is the second segment/half of a 60 second recording. 
                                 current_time += (i & 1) ? 30 : 0; // i & 1 is a bitwise AND operation -- Returns 1 if i is odd, 0 if i is even.
                                 char *t = ctime(&current_time);
-                                if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0';
+                                if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0'; // For terminal output
+                                struct tm *time_info = std::localtime(&current_time); // For writing to file
+                                                                
 
                                 if (params.fname_out.length() > 0) {
-                                    fout << "\n[[" << t << "]]: ";
+                                    fout << "\n[[" << std::put_time(time_info, "%B %dth %Y, %I:%M:%S %p (%A)") << "]]: ";
                                 }
                                 if (params.fname_out_html.length() > 0) {
-                                    fouthtml << "\n<br><div><i style=\"color:#D6FFD1;\">[[" << t << "]]:</i> ";
+                                    fouthtml << "\n<br><div><i style=\"color:#D6FFD1;\">[[" << std::put_time(time_info, "%B %dth %Y, %I:%M:%S %p (%A)") << "]]:</i> ";
                                 }
                                 printf("\n\n%s%s%s%s", t, k_colors[col].c_str(), ttext, "\033[0m");
 
