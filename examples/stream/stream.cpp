@@ -410,23 +410,33 @@ int main(int argc, char ** argv) {
                             const int col = std::max(0, std::min((int) k_colors.size() - 1, (int) (pow(p, 3)*float(k_colors.size()))));
                             if (j == 1){
 
-                                time_t current_time;
-                                current_time = time(NULL);
+                                time_t current_time = time(NULL);
                                 
                                 // Add 30 seconds to current time if this is the second segment/half of a 60 second recording. 
                                 current_time += (i & 1) ? 30 : 0; // i & 1 is a bitwise AND operation -- Returns 1 if i is odd, 0 if i is even.
-                                char *t = ctime(&current_time);
-                                if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0'; // For terminal output
-                                struct tm *time_info = std::localtime(&current_time); // For writing to file
+                                
+                                
+                                // char *t = ctime(&current_time);
+                                // if (t[strlen(t)-1] == '\n') t[strlen(t)-1] = '\0'; // For terminal output
+                                // struct tm *time_info = std::localtime(&current_time); // For writing to file
+
+
+
+                                auto myNow = std::chrono::system_clock::now();
+                                std::time_t myNowC = std::chrono::system_clock::to_time_t(myNow);
+                                std::stringstream mySS;
+                                mySS << std::put_time(std::localtime(&myNowC), "%B %d, %Y (%A), %i:%M:%S %p");
                                                                 
 
                                 if (params.fname_out.length() > 0) {
-                                    fout << "\n[[" << std::put_time(time_info, "%B %dth %Y, %I:%M:%S %p (%A)") << "]]: ";
+                                    // fout << "\n[[" << std::put_time(time_info, "%B %d (%A), %Y, %I:%M:%S %p") << "]]: ";
+                                    fout << "\n[[" << mySS.str() << "]]: ";
                                 }
                                 if (params.fname_out_html.length() > 0) {
-                                    fouthtml << "\n<br><div><i style=\"color:#D6FFD1;\">[[" << std::put_time(time_info, "%B %dth %Y, %I:%M:%S %p (%A)") << "]]:</i> ";
+                                    // fouthtml << "\n<br><div><i style=\"color:#D6FFD1;\">[[" << std::put_time(time_info, "%B %d (%A), %Y, %I:%M:%S %p") << "]]:</i> ";
+                                    fouthtml << "\n<br><div><i style=\"color:#D6FFD1;\">[[" << mySS.str() << "]]:</i> ";
                                 }
-                                printf("\n\n%s%s%s%s", t, k_colors[col].c_str(), ttext, "\033[0m");
+                                printf("\n\n%s%s%s%s", mySS.str().c_str(), k_colors[col].c_str(), ttext, "\033[0m");
 
                             }else{
                                 printf ("%s%s%s", k_colors[col].c_str(), ttext, "\033[0m");
