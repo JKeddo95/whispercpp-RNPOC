@@ -376,23 +376,13 @@ int main(int argc, char ** argv) {
                     const int64_t t1 = (t_last - t_start).count()/1000000;
                     const int64_t t0 = std::max(0.0, t1 - pcmf32.size()*1000.0/WHISPER_SAMPLE_RATE);
 
-                    auto now = std::chrono::system_clock::now();
-                    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-                    std::stringstream ss;
-                    ss << std::put_time(std::localtime(&now_c), "%F %T");
-
                     printf("\n");
-                    printf("### Transcription %d START | t0 = %d ms | t1 = %d ms | %s\n", n_iter, (int) t0, (int) t1, ss.str().c_str());
+                    printf("### Transcription %d START | t0 = %d ms | t1 = %d ms", n_iter, (int) t0, (int) t1);
                     printf("\n");
                 }
 
                 const int n_segments = whisper_full_n_segments(ctx);
-
                 for (int i = 0; i < n_segments; ++i) {
-
-
-                    auto timeAtSegment = std::chrono::system_clock::now();
-                    std::time_t timeAtSegment_c = std::chrono::system_clock::to_time_t(timeAtSegment);
 
                     if (params.print_colors) {
                         for (int j = 0; j < whisper_full_n_tokens(ctx, i); ++j) {
@@ -455,6 +445,10 @@ int main(int argc, char ** argv) {
 
                     }
                     else {
+
+
+                        auto timeAtSegment = std::chrono::system_clock::now();
+                        std::time_t timeAtSegment_c = std::chrono::system_clock::to_time_t(timeAtSegment);
                         const char * text = whisper_full_get_segment_text(ctx, i);
 
                         if (params.no_timestamps) {
