@@ -386,7 +386,7 @@ int main(int argc, char ** argv) {
                 for (int i = 0; i < n_segments; ++i) {
                     const char * text = whisper_full_get_segment_text(ctx, i);
 
-                    if (params.no_timestamps) {
+                    if (params.no_timestamps && !params.print_colors) {
                         printf("%s", text);
                         fflush(stdout);
 
@@ -420,7 +420,7 @@ int main(int argc, char ** argv) {
                                 
                                 // Format time
                                 std::stringstream nowAtSegmentSS;
-                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y (%A), %I:%M:%S%p");
+                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y (%A), %I:%M:%S %p");
                                                                 
 
                                 if (params.fname_out.length() > 0) {
