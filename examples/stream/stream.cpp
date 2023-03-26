@@ -112,7 +112,7 @@ bool whisper_params_parse(int argc, char ** argv, whisper_params & params) {
         else if (arg == "-l"   || arg == "--language")      { params.language      = argv[++i]; }
         else if (arg == "-m"   || arg == "--model")         { params.model         = argv[++i]; }
         else if (arg == "-f"   || arg == "--file")          { params.fname_out     = argv[++i]; }
-        else if (arg == "-fh"   || arg == "--filehtml")          { params.fname_out_html     = argv[++i]; }
+        else if (arg == "-fh"  || arg == "--filehtml")      { params.fname_out_html     = argv[++i]; }
         else {
             fprintf(stderr, "error: unknown argument: %s\n", arg.c_str());
             whisper_print_usage(argc, argv, params);
@@ -393,7 +393,7 @@ int main(int argc, char ** argv) {
                             fout << text;
                         }
                         if (params.fname_out_html.length() > 0) {
-                            fouthtml << text;
+                            fouthtml << "<div>" << text;
                         }
                     } else if (params.print_colors) {
                         for (int j = 0; j < whisper_full_n_tokens(ctx, i); ++j) {
@@ -444,16 +444,6 @@ int main(int argc, char ** argv) {
                             }
 
                         }
-
-
-
-                        if (params.fname_out.length() > 0) {
-                            fout << std::endl;
-                        }
-                        if (params.fname_out_html.length() > 0) {
-                            fouthtml << "</div>" << std::endl;
-                        }
-
                     } else { // When user does not want colors but *does* want timestamps
 
 
@@ -461,17 +451,28 @@ int main(int argc, char ** argv) {
                         std::time_t timeAtSegment_c = std::chrono::system_clock::to_time_t(timeAtSegment);
                         const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
                         const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
+
                         printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
+
                         if (params.fname_out.length() > 0) {
-                            fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
+                            fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text;
                         }
                         if (params.fname_out_html.length() > 0) {
-                            fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
+                            fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text;
                         }
                         
                     }
-                }
 
+                    if (params.fname_out.length() > 0) {
+                        fout << std::endl;
+                    }
+                    if (params.fname_out_html.length() > 0) {
+                        fouthtml << "</div>" << std::endl;
+                    }
+                }
+                if (params.fname_out.length() > 0) {
+                    fout << std::endl;
+                }
                 if (use_vad){
                     printf("\n");
                     printf("### Transcription %d END\n", n_iter);
