@@ -14,6 +14,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 // Terminal color map. 10 colors grouped in ranges [0.0, 0.1, ..., 0.9]
 // Lowest is red, middle is yellow, highest is green.
@@ -419,7 +420,7 @@ int main(int argc, char ** argv) {
                                 
                                 // Format time
                                 std::stringstream nowAtSegmentSS;
-                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d, %Y (%A), %I:%M:%S %p");
+                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y (%A), %I:%M:%S%p");
                                                                 
 
                                 if (params.fname_out.length() > 0) {
