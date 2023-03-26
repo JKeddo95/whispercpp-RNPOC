@@ -455,12 +455,11 @@ int main(int argc, char ** argv) {
                         printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
 
                         if (params.fname_out.length() > 0) {
-                            fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text;
+                            fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
                         }
                         if (params.fname_out_html.length() > 0) {
-                            fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text;
+                            fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
                         }
-                        
                     }
 
                     if (params.fname_out.length() > 0) {
@@ -473,6 +472,7 @@ int main(int argc, char ** argv) {
                 if (params.fname_out.length() > 0) {
                     fout << std::endl;
                 }
+                
                 if (use_vad){
                     printf("\n");
                     printf("### Transcription %d END\n", n_iter);
