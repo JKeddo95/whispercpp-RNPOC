@@ -377,14 +377,25 @@ int main(int argc, char ** argv) {
                     const int64_t t0 = std::max(0.0, t1 - pcmf32.size()*1000.0/WHISPER_SAMPLE_RATE);
 
                     printf("\n");
-                    printf("### Transcription %d START | t0 = %d ms | t1 = %d ms", n_iter, (int) t0, (int) t1);
+                    printf("### Transcription %d START | t0 = %d ms | t1 = %d ms\n", n_iter, (int) t0, (int) t1);
                     printf("\n");
                 }
 
                 const int n_segments = whisper_full_n_segments(ctx);
                 for (int i = 0; i < n_segments; ++i) {
 
-                    if (params.print_colors) {
+                    const char * text = whisper_full_get_segment_text(ctx, i);
+                    if (params.no_timestamps) {
+                            printf("%s", text);
+                            fflush(stdout);
+
+                            if (params.fname_out.length() > 0) {
+                                fout << text;
+                            }
+                            if (params.fname_out_html.length() > 0) {
+                                fouthtml << text;
+                            }
+                    } else if (params.print_colors) {
                         for (int j = 0; j < whisper_full_n_tokens(ctx, i); ++j) {
 
                             
@@ -443,35 +454,21 @@ int main(int argc, char ** argv) {
                             fouthtml << "</div>" << std::endl;
                         }
 
-                    }
-                    else {
+                    } else { // When user does not want colors but *does* want timestamps
 
 
                         auto timeAtSegment = std::chrono::system_clock::now();
                         std::time_t timeAtSegment_c = std::chrono::system_clock::to_time_t(timeAtSegment);
-                        const char * text = whisper_full_get_segment_text(ctx, i);
-
-                        if (params.no_timestamps) {
-                            printf("%s", text);
-                            fflush(stdout);
-
-                            if (params.fname_out.length() > 0) {
-                                fout << text;
-                            }
-                            if (params.fname_out_html.length() > 0) {
-                                fouthtml << text;
-                            }
-                        } else {
-                            const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
-                            const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
-                            printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
-                            if (params.fname_out.length() > 0) {
-                                fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
-                            }
-                            if (params.fname_out_html.length() > 0) {
-                                fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
-                            }
+                        const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
+                        const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
+                        printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
+                        if (params.fname_out.length() > 0) {
+                            fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
                         }
+                        if (params.fname_out_html.length() > 0) {
+                            fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
+                        }
+                        
                     }
                 }
 
