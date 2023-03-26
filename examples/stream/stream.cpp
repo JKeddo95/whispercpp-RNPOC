@@ -383,18 +383,18 @@ int main(int argc, char ** argv) {
 
                 const int n_segments = whisper_full_n_segments(ctx);
                 for (int i = 0; i < n_segments; ++i) {
-
                     const char * text = whisper_full_get_segment_text(ctx, i);
-                    if (params.no_timestamps) {
-                            printf("%s", text);
-                            fflush(stdout);
 
-                            if (params.fname_out.length() > 0) {
-                                fout << text;
-                            }
-                            if (params.fname_out_html.length() > 0) {
-                                fouthtml << text;
-                            }
+                    if (params.no_timestamps) {
+                        printf("%s", text);
+                        fflush(stdout);
+
+                        if (params.fname_out.length() > 0) {
+                            fout << text;
+                        }
+                        if (params.fname_out_html.length() > 0) {
+                            fouthtml << text;
+                        }
                     } else if (params.print_colors) {
                         for (int j = 0; j < whisper_full_n_tokens(ctx, i); ++j) {
 
