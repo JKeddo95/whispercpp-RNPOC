@@ -472,7 +472,7 @@ int main(int argc, char ** argv) {
                 if (params.fname_out.length() > 0) {
                     fout << std::endl;
                 }
-                
+
                 if (use_vad){
                     printf("\n");
                     printf("### Transcription %d END\n", n_iter);
