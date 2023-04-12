@@ -263,7 +263,7 @@ int main(int argc, char ** argv) {
     }
     if (params.fname_out_html.length() > 0) { //output as html
         fouthtml << "<!DOCTYPE html><html><head><title>My Whispers</title></head>" << std::endl;
-        fouthtml << "<body><link rel='stylesheet' href='../pico.css'></link><div &nbsp data-theme='dark'>" << std::endl;
+        fouthtml << "<body>\n<script type='text/javascript'>\n// conditionally reference styles based on whether we are viewing files from webserver or filesystem directly\nif (/localhost/.test(window.top.location.host)) {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pico.css\" />');\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark'>" << std::endl;
         fouthtml << "<h1>Your Whispers: Transcription Logs</h1>" << std::endl;
     }
 
