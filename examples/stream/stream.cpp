@@ -263,8 +263,10 @@ int main(int argc, char ** argv) {
     }
     if (params.fname_out_html.length() > 0) { //output as html
         fouthtml << "<!DOCTYPE html><html><head><title>My Whispers</title></head>" << std::endl;
-        fouthtml << "<body>\n<script type='text/javascript'>\n// conditionally reference styles based on whether we are viewing files from webserver or filesystem directly\nif (/localhost/.test(window.top.location.host)) {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pico.css\" />');\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark'>" << std::endl;
+        fouthtml << "<body>\n<script type='text/javascript'>\n// conditionally reference styles based on whether we are viewing files from webserver or filesystem directly\nif (/localhost/.test(window.top.location.host) || /192\\.168\\./.test(window.top.location.host)) {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pico.css\" />');\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark'>" << std::endl;
         fouthtml << "<h1>Your Whispers: Transcription Logs</h1>" << std::endl;
+        fouthtml << "<h4 id='currentFileName'>" << params.fname_out_html << "</h4>" << std::endl;
+        fouthtml << "<a href='/getPreviousPage/" << "" << "'>Previous</a> &nbsp <a href='/getNextPage" << "" << "'>Next</a>" << std::endl;
     }
 
     // main audio loop
@@ -419,7 +421,7 @@ int main(int argc, char ** argv) {
                                 
                                 // Format time
                                 std::stringstream nowAtSegmentSS;
-                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y (%A), %I:%M:%S %p");
+                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y, %I:%M:%S %p, (%A)");
                                                                 
 
                                 if (params.fname_out.length() > 0) {
