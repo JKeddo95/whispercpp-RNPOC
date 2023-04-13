@@ -262,11 +262,24 @@ int main(int argc, char ** argv) {
         fout << std::endl;
     }
     if (params.fname_out_html.length() > 0) { //output as html
+
+        // HTML Headers
         fouthtml << "<!DOCTYPE html><html><head><title>My Whispers</title></head>" << std::endl;
-        fouthtml << "<body>\n<script type='text/javascript'>\n// conditionally reference styles based on whether we are viewing files from webserver or filesystem directly\nif (/localhost/.test(window.top.location.host) || /192\\.168\\./.test(window.top.location.host)) {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pico.css\" />');\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark'>" << std::endl;
+
+        // HTML for top of page and navigation
+        fouthtml << "<body>\n" << std::endl;
         fouthtml << "<h1>Your Whispers: Transcription Logs</h1>" << std::endl;
         fouthtml << "<h4 id='currentFileName'>" << params.fname_out_html << "</h4>" << std::endl;
-        fouthtml << "<a href='/getPreviousPage/" << "" << "'>Previous</a> &nbsp <a href='/getNextPage" << "" << "'>Next</a>" << std::endl;
+        fouthtml << "<a id='previouspage' href=''>Previous</a> &nbsp <a id='nextpage' href=''>Next</a>" << std::endl;
+
+        // Javascript for conditionally loading CSS and setting up previous/next page links
+        fouthtml << "<script type='text/javascript'>\n// conditionally reference styles based on whether we are viewing files from webserver or filesystem directly";
+        fouthtml << "\nif (/localhost/.test(window.top.location.host) || /192\\.168\\./.test(window.top.location.host))";
+        fouthtml << "{\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pico.css\" />');";
+        fouthtml << "\ndocument.getElementById('previouspage').href = String('./recent?offset=' + Math.max(parseInt(new URLSearchParams(window.location.search).get('offset') || 0) + 1, 0));";
+        fouthtml << "\ndocument.getElementById('nextpage').href = String('./recent?offset=' + Math.max(parseInt(new URLSearchParams(window.location.search).get('offset') || 0) - 1, 0));";
+        fouthtml << "\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark'>" << std::endl;
+        
     }
 
     // main audio loop
@@ -421,7 +434,7 @@ int main(int argc, char ** argv) {
                                 
                                 // Format time
                                 std::stringstream nowAtSegmentSS;
-                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y, %I:%M:%S %p, (%A)");
+                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y, %I:%M:%S %p (%A)");
                                                                 
 
                                 if (params.fname_out.length() > 0) {
