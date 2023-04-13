@@ -13,6 +13,38 @@
 #include <thread>
 #include <vector>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
+
+// Terminal color map. 10 colors grouped in ranges [0.0, 0.1, ..., 0.9]
+// Lowest is red, middle is yellow, highest is green.
+const std::vector<std::string> k_colors = {
+    "\e[38;5;218m", // light red
+    "\e[38;5;218m", // light red
+    "\e[38;5;220m", // light orange
+    "\e[38;5;220m", // light orange
+    "\e[38;5;226m", // yellow
+    "\e[38;5;226m", // yellow
+    "\e[38;5;190m", // light yellow-green
+    "\e[38;5;190m", // light yellow-green
+    "\e[38;5;154m", // light green
+    "\e[38;5;154m", // light green
+};
+
+// File color map. 10 colors grouped in ranges [0.0, 0.1, ..., 0.9]
+// Lowest is red, middle is yellow, highest is green.
+const std::vector<std::string> k_colors_html = {
+    "<span style=\"color:#FFD2D2;\">", // light red
+    "<span style=\"color:#FFD2D2;\">", // light red
+    "<span style=\"color:#FFE8D2;\">", // light orange
+    "<span style=\"color:#FFE8D2;\">", // light orange
+    "<span style=\"color:#FFFFD2;\">", // yellow
+    "<span style=\"color:#FFFFD2;\">", // yellow
+    "<span style=\"color:#F4FFD2;\">", // light yellow green
+    "<span style=\"color:#F4FFD2;\">", // light yellow green
+    "<span style=\"color:#DDFFD2;\">", // light green
+    "<span style=\"color:#DDFFD2;\">", // light green
+};
 
 //  500 -> 00:05.000
 // 6000 -> 01:00.000
@@ -44,12 +76,14 @@ struct whisper_params {
     bool speed_up      = false;
     bool translate     = false;
     bool print_special = false;
+    bool print_colors  = false;
     bool no_context    = true;
     bool no_timestamps = false;
 
     std::string language  = "en";
     std::string model     = "models/ggml-base.en.bin";
     std::string fname_out;
+    std::string fname_out_html;
 };
 
 void whisper_print_usage(int argc, char ** argv, const whisper_params & params);
@@ -74,10 +108,12 @@ bool whisper_params_parse(int argc, char ** argv, whisper_params & params) {
         else if (arg == "-su"  || arg == "--speed-up")      { params.speed_up      = true; }
         else if (arg == "-tr"  || arg == "--translate")     { params.translate     = true; }
         else if (arg == "-ps"  || arg == "--print-special") { params.print_special = true; }
+        else if (arg == "-pc"  || arg == "--print-colors")  { params.print_colors  = true; }
         else if (arg == "-kc"  || arg == "--keep-context")  { params.no_context    = false; }
         else if (arg == "-l"   || arg == "--language")      { params.language      = argv[++i]; }
         else if (arg == "-m"   || arg == "--model")         { params.model         = argv[++i]; }
         else if (arg == "-f"   || arg == "--file")          { params.fname_out     = argv[++i]; }
+        else if (arg == "-fh"  || arg == "--filehtml")      { params.fname_out_html     = argv[++i]; }
         else {
             fprintf(stderr, "error: unknown argument: %s\n", arg.c_str());
             whisper_print_usage(argc, argv, params);
@@ -105,11 +141,13 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
     fprintf(stderr, "  -fth N,   --freq-thold N  [%-7.2f] high-pass frequency cutoff\n",                params.freq_thold);
     fprintf(stderr, "  -su,      --speed-up      [%-7s] speed up audio by x2 (reduced accuracy)\n",     params.speed_up ? "true" : "false");
     fprintf(stderr, "  -tr,      --translate     [%-7s] translate from source language to english\n",   params.translate ? "true" : "false");
+    fprintf(stderr, "  -pc,      --print-colors  [%-7s] print colors\n",                                params.print_colors ? "true" : "false");
     fprintf(stderr, "  -ps,      --print-special [%-7s] print special tokens\n",                        params.print_special ? "true" : "false");
     fprintf(stderr, "  -kc,      --keep-context  [%-7s] keep context between audio chunks\n",           params.no_context ? "false" : "true");
     fprintf(stderr, "  -l LANG,  --language LANG [%-7s] spoken language\n",                             params.language.c_str());
     fprintf(stderr, "  -m FNAME, --model FNAME   [%-7s] model path\n",                                  params.model.c_str());
     fprintf(stderr, "  -f FNAME, --file FNAME    [%-7s] text output file name\n",                       params.fname_out.c_str());
+    fprintf(stderr, "  -fh FNAMH, --file FNAMEH    [%-7s] html output file name\n",                       params.fname_out_html.c_str());
     fprintf(stderr, "\n");
 }
 
@@ -205,11 +243,44 @@ int main(int argc, char ** argv) {
         }
     }
 
+    std::ofstream fouthtml;
+    if (params.fname_out_html.length() > 0) {
+        fouthtml.open(params.fname_out_html);
+        if (!fouthtml.is_open()) {
+            fprintf(stderr, "%s: failed to open output file '%s'!\n", __func__, params.fname_out_html.c_str());
+            return 1;
+        }
+    }
+
     printf("[Start speaking]");
     fflush(stdout);
 
           auto t_last  = std::chrono::high_resolution_clock::now();
     const auto t_start = t_last;
+
+    if (params.fname_out.length() > 0) { //output as text
+        fout << std::endl;
+    }
+    if (params.fname_out_html.length() > 0) { //output as html
+
+        // HTML Headers
+        fouthtml << "<!DOCTYPE html><html><head><title>My Whispers</title></head>" << std::endl;
+
+        // HTML for top of page and navigation
+        fouthtml << "<body>\n" << std::endl;
+        fouthtml << "<h1>Your Whispers: Transcription Logs</h1>" << std::endl;
+        fouthtml << "<h4 id='currentFileName'>" << params.fname_out_html << "</h4>" << std::endl;
+        fouthtml << "<a id='previouspage' href=''>Previous</a> &nbsp <a id='nextpage' href=''>Next</a>" << std::endl;
+
+        // Javascript for conditionally loading CSS and setting up previous/next page links
+        fouthtml << "<script type='text/javascript'>\n// conditionally reference styles based on whether we are viewing files from webserver or filesystem directly";
+        fouthtml << "\nif (/localhost/.test(window.top.location.host) || /192\\.168\\./.test(window.top.location.host))";
+        fouthtml << "{\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pico.css\" />');";
+        fouthtml << "\ndocument.getElementById('previouspage').href = String('./recent?offset=' + Math.max(parseInt(new URLSearchParams(window.location.search).get('offset') || 0) + 1, 0));";
+        fouthtml << "\ndocument.getElementById('nextpage').href = String('./recent?offset=' + Math.max(parseInt(new URLSearchParams(window.location.search).get('offset') || 0) - 1, 0));";
+        fouthtml << "\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark'>" << std::endl;
+        
+    }
 
     // main audio loop
     while (is_running) {
@@ -329,25 +400,90 @@ int main(int argc, char ** argv) {
                 for (int i = 0; i < n_segments; ++i) {
                     const char * text = whisper_full_get_segment_text(ctx, i);
 
-                    if (params.no_timestamps) {
+                    if (params.no_timestamps && !params.print_colors) {
                         printf("%s", text);
                         fflush(stdout);
 
                         if (params.fname_out.length() > 0) {
                             fout << text;
                         }
-                    } else {
+                        if (params.fname_out_html.length() > 0) {
+                            fouthtml << "<div>" << text;
+                        }
+                    } else if (params.print_colors) {
+                        for (int j = 0; j < whisper_full_n_tokens(ctx, i); ++j) {
+
+                            
+                            if (params.print_special == false) {
+                                const whisper_token id = whisper_full_get_token_id(ctx, i, j);
+                                if (id >= whisper_token_eot(ctx)) {
+                                    continue;
+                                }
+                            }
+
+                            const char * ttext = whisper_full_get_token_text(ctx, i, j);
+                            const float p = whisper_full_get_token_p(ctx, i, j);
+                            const int col = std::max(0, std::min((int) k_colors.size() - 1, (int) (pow(p, 3)*float(k_colors.size()))));
+                            if (j == 1){
+
+
+                                // Add 30 seconds to current time if this is the second segment/half of a 60 second recording. 
+                                auto nowAtSegment = std::chrono::system_clock::now();
+                                std::time_t nowAtSegmentC = std::chrono::system_clock::to_time_t(nowAtSegment);
+                                nowAtSegmentC += (i & 1) ? 30 : 0; // i & 1 is a bitwise AND operation -- Returns 1 if i is odd, 0 if i is even.
+                                
+                                // Format time
+                                std::stringstream nowAtSegmentSS;
+                                nowAtSegmentSS << std::put_time(std::localtime(&nowAtSegmentC), "%B %d %Y, %I:%M:%S %p (%A)");
+                                                                
+
+                                if (params.fname_out.length() > 0) {
+                                    fout << "\n[[" << nowAtSegmentSS.str() << "]]: ";
+                                }
+                                if (params.fname_out_html.length() > 0) {
+                                    fouthtml << "\n<br><div><i style=\"color:#D6FFD1;\">[[" << nowAtSegmentSS.str() << "]]:</i> ";
+                                }
+                                printf("\n\n%s%s%s%s", nowAtSegmentSS.str().c_str(), k_colors[col].c_str(), ttext, "\033[0m");
+
+                            }else{
+                                printf ("%s%s%s", k_colors[col].c_str(), ttext, "\033[0m");
+                            }
+
+
+
+                            if (params.fname_out.length() > 0) {
+                                fout << ttext;
+                            }
+                            if (params.fname_out_html.length() > 0) {
+                                fouthtml << k_colors_html[col] << ttext << "</span>";
+                            }
+
+                        }
+                    } else { // When user does not want colors but *does* want timestamps
+
+
+                        auto timeAtSegment = std::chrono::system_clock::now();
+                        std::time_t timeAtSegment_c = std::chrono::system_clock::to_time_t(timeAtSegment);
                         const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
                         const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
 
                         printf ("[%s --> %s]  %s\n", to_timestamp(t0).c_str(), to_timestamp(t1).c_str(), text);
 
                         if (params.fname_out.length() > 0) {
-                            fout << "[" << to_timestamp(t0) << " --> " << to_timestamp(t1) << "]  " << text << std::endl;
+                            fout << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
+                        }
+                        if (params.fname_out_html.length() > 0) {
+                            fouthtml << "[" << std::put_time(std::localtime(&timeAtSegment_c), "%F %T") << "]  " << text << std::endl;
                         }
                     }
-                }
 
+                    if (params.fname_out.length() > 0) {
+                        fout << std::endl;
+                    }
+                    if (params.fname_out_html.length() > 0) {
+                        fouthtml << "</div>" << std::endl;
+                    }
+                }
                 if (params.fname_out.length() > 0) {
                     fout << std::endl;
                 }
@@ -383,6 +519,13 @@ int main(int argc, char ** argv) {
     }
 
     audio.pause();
+
+    if (params.fname_out.length() > 0) {
+        fout << std::endl;
+    }
+    if (params.fname_out_html.length() > 0) {
+        fouthtml << "</body></html>" << std::endl;
+    }
 
     whisper_print_timings(ctx);
     whisper_free(ctx);
