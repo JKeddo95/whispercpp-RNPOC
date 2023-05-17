@@ -66,6 +66,7 @@ struct whisper_params {
 
     bool speed_up       = false;
     bool translate      = false;
+    bool detect_language= false;
     bool diarize        = false;
     bool split_on_word  = false;
     bool no_fallback    = false;
@@ -141,6 +142,7 @@ bool whisper_params_parse(int argc, char ** argv, whisper_params & params) {
         else if (arg == "-pp"   || arg == "--print-progress") { params.print_progress = true; }
         else if (arg == "-nt"   || arg == "--no-timestamps")  { params.no_timestamps  = true; }
         else if (arg == "-l"    || arg == "--language")       { params.language       = argv[++i]; }
+        else if (arg == "-dl"   || arg == "--detect-language"){ params.detect_language= true; }
         else if (                  arg == "--prompt")         { params.prompt         = argv[++i]; }
         else if (arg == "-m"    || arg == "--model")          { params.model          = argv[++i]; }
         else if (arg == "-f"    || arg == "--file")           { params.fname_inp.emplace_back(argv[++i]); }
@@ -189,8 +191,9 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
     fprintf(stderr, "  -ps,       --print-special     [%-7s] print special tokens\n",                           params.print_special ? "true" : "false");
     fprintf(stderr, "  -pc,       --print-colors      [%-7s] print colors\n",                                   params.print_colors ? "true" : "false");
     fprintf(stderr, "  -pp,       --print-progress    [%-7s] print progress\n",                                 params.print_progress ? "true" : "false");
-    fprintf(stderr, "  -nt,       --no-timestamps     [%-7s] do not print timestamps\n",                        params.no_timestamps ? "false" : "true");
+    fprintf(stderr, "  -nt,       --no-timestamps     [%-7s] do not print timestamps\n",                        params.no_timestamps ? "true" : "false");
     fprintf(stderr, "  -l LANG,   --language LANG     [%-7s] spoken language ('auto' for auto-detect)\n",       params.language.c_str());
+    fprintf(stderr, "  -dl,       --detect-language   [%-7s] exit after automatically detecting language\n",    params.detect_language ? "true" : "false");
     fprintf(stderr, "             --prompt PROMPT     [%-7s] initial prompt\n",                                 params.prompt.c_str());
     fprintf(stderr, "  -m FNAME,  --model FNAME       [%-7s] model path\n",                                     params.model.c_str());
     fprintf(stderr, "  -f FNAME,  --file FNAME        [%-7s] input WAV file path\n",                            "");
@@ -352,6 +355,37 @@ bool output_srt(struct whisper_context * ctx, const char * fname, const whisper_
     return true;
 }
 
+char *escape_double_quotes_and_backslashes(const char *str) {
+    if (str == NULL) {
+        return NULL;
+    }
+
+    size_t escaped_length = strlen(str) + 1;
+
+    for (size_t i = 0; str[i] != '\0'; i++) {
+        if (str[i] == '"' || str[i] == '\\') {
+            escaped_length++;
+        }
+    }
+
+    char *escaped = (char *)calloc(escaped_length, 1); // pre-zeroed
+    if (escaped == NULL) {
+        return NULL;
+    }
+
+    size_t pos = 0;
+    for (size_t i = 0; str[i] != '\0'; i++) {
+        if (str[i] == '"' || str[i] == '\\') {
+            escaped[pos++] = '\\';
+        }
+        escaped[pos++] = str[i];
+    }
+
+    // no need to set zero due to calloc() being used prior
+
+    return escaped;
+}
+
 bool output_csv(struct whisper_context * ctx, const char * fname) {
     std::ofstream fout(fname);
     if (!fout.is_open()) {
@@ -367,45 +401,13 @@ bool output_csv(struct whisper_context * ctx, const char * fname) {
         const char * text = whisper_full_get_segment_text(ctx, i);
         const int64_t t0 = whisper_full_get_segment_t0(ctx, i);
         const int64_t t1 = whisper_full_get_segment_t1(ctx, i);
+        char * text_escaped = escape_double_quotes_and_backslashes(text);
 
         //need to multiply times returned from whisper_full_get_segment_t{0,1}() by 10 to get milliseconds.
-        fout << 10 * t0 << "," << 10 * t1 << ",\"" << text    << "\"\n";
+        fout << 10 * t0 << "," << 10 * t1 << ",\"" << text_escaped    << "\"\n";
     }
 
     return true;
-}
-
-char *escape_double_quotes(const char *str) {
-    if (str == NULL) {
-        return NULL;
-    }
-
-    size_t escaped_length = strlen(str) + 1;
-
-    for (size_t i = 0; str[i] != '\0'; i++) {
-        if (str[i] == '"') {
-            escaped_length++;
-        }
-    }
-
-    char *escaped = (char *)calloc(escaped_length, 1); // pre-zeroed
-    if (escaped == NULL) {
-        return NULL;
-    }
-
-    size_t pos = 0;
-    for (size_t i = 0; str[i] != '\0'; i++) {
-        if (str[i] == '"') {
-            escaped[pos++] = '\\';
-            escaped[pos++] = '"';
-        } else {
-            escaped[pos++] = str[i];
-        }
-    }
-
-    // no need to set zero due to calloc() being used prior
-
-    return escaped;
 }
 
 bool output_json(struct whisper_context * ctx, const char * fname, const whisper_params & params) {
@@ -451,7 +453,7 @@ bool output_json(struct whisper_context * ctx, const char * fname, const whisper
 
     auto value_s = [&](const char *name, const char *val, bool end = false) {
         start_value(name);
-        char * val_escaped = escape_double_quotes(val);
+        char * val_escaped = escape_double_quotes_and_backslashes(val);
         fout << "\"" << val_escaped << (end ? "\"\n" : "\",\n");
         free(val_escaped);
     };
@@ -497,7 +499,7 @@ bool output_json(struct whisper_context * ctx, const char * fname, const whisper
                 value_i("layer", whisper_model_n_text_layer(ctx), true);
             end_obj();
             value_i("mels", whisper_model_n_mels(ctx));
-            value_i("f16", whisper_model_f16(ctx), true);
+            value_i("ftype", whisper_model_ftype(ctx), true);
         end_obj();
         start_obj("params");
             value_s("model", params.model.c_str());
@@ -740,6 +742,9 @@ int main(int argc, char ** argv) {
                     fprintf(stderr, "%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
                 }
             }
+            if (params.detect_language) {
+                params.language = "auto";
+            }
             fprintf(stderr, "%s: processing '%s' (%d samples, %.1f sec), %d threads, %d processors, lang = %s, task = %s, timestamps = %d ...\n",
                     __func__, fname_inp.c_str(), int(pcmf32.size()), float(pcmf32.size())/WHISPER_SAMPLE_RATE,
                     params.n_threads, params.n_processors,
@@ -762,6 +767,7 @@ int main(int argc, char ** argv) {
             wparams.print_special    = params.print_special;
             wparams.translate        = params.translate;
             wparams.language         = params.language.c_str();
+            wparams.detect_language  = params.detect_language;
             wparams.n_threads        = params.n_threads;
             wparams.n_max_text_ctx   = params.max_context >= 0 ? params.max_context : wparams.n_max_text_ctx;
             wparams.offset_ms        = params.offset_t_ms;

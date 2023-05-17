@@ -1,10 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
 
-project(whisper.cpp VERSION 1.3.0)
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    add_compile_options(/utf-8)
-endif ()
+project(whisper.cpp VERSION 1.4.2)
 
 # Add path to modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -39,32 +35,36 @@ endif()
 
 # options
 
-option(BUILD_SHARED_LIBS               "whisper: build shared libs" ${BUILD_SHARED_LIBS_DEFAULT})
+option(BUILD_SHARED_LIBS              "whisper: build shared libs" ${BUILD_SHARED_LIBS_DEFAULT})
 
-option(WHISPER_ALL_WARNINGS            "whisper: enable all compiler warnings"                   ON)
-option(WHISPER_ALL_WARNINGS_3RD_PARTY  "whisper: enable all compiler warnings in 3rd party libs" OFF)
+option(WHISPER_ALL_WARNINGS           "whisper: enable all compiler warnings"                   ON)
+option(WHISPER_ALL_WARNINGS_3RD_PARTY "whisper: enable all compiler warnings in 3rd party libs" OFF)
 
-option(WHISPER_SANITIZE_THREAD         "whisper: enable thread sanitizer"    OFF)
-option(WHISPER_SANITIZE_ADDRESS        "whisper: enable address sanitizer"   OFF)
-option(WHISPER_SANITIZE_UNDEFINED      "whisper: enable undefined sanitizer" OFF)
+option(WHISPER_SANITIZE_THREAD        "whisper: enable thread sanitizer"    OFF)
+option(WHISPER_SANITIZE_ADDRESS       "whisper: enable address sanitizer"   OFF)
+option(WHISPER_SANITIZE_UNDEFINED     "whisper: enable undefined sanitizer" OFF)
 
-option(WHISPER_BUILD_TESTS             "whisper: build tests"    ${WHISPER_STANDALONE})
-option(WHISPER_BUILD_EXAMPLES          "whisper: build examples" ${WHISPER_STANDALONE})
+option(WHISPER_BUILD_TESTS            "whisper: build tests"    ${WHISPER_STANDALONE})
+option(WHISPER_BUILD_EXAMPLES         "whisper: build examples" ${WHISPER_STANDALONE})
 
-option(WHISPER_SUPPORT_SDL2            "whisper: support for libSDL2" OFF)
+option(WHISPER_SDL2                   "whisper: support for libSDL2" OFF)
+
+option(WHISPER_NO_AVX                 "whisper: disable AVX"  OFF)
+option(WHISPER_NO_AVX2                "whisper: disable AVX2" OFF)
+option(WHISPER_NO_FMA                 "whisper: disable FMA"  OFF)
+option(WHISPER_NO_F16C                "whisper: disable F16c" OFF)
 
 if (APPLE)
-    option(WHISPER_NO_ACCELERATE       "whisper: disable Accelerate framework" OFF)
-    option(WHISPER_NO_AVX              "whisper: disable AVX" OFF)
-    option(WHISPER_NO_AVX2             "whisper: disable AVX2" OFF)
-    option(WHISPER_NO_FMA              "whisper: disable FMA" OFF)
-
-    option(WHISPER_COREML              "whisper: enable Core ML framework" OFF)
+    option(WHISPER_NO_ACCELERATE         "whisper: disable Accelerate framework" OFF)
+    option(WHISPER_COREML                "whisper: enable Core ML framework"     OFF)
+    option(WHISPER_COREML_ALLOW_FALLBACK "whisper: allow non-CoreML fallback"    OFF)
 else()
-    option(WHISPER_SUPPORT_OPENBLAS    "whisper: support for OpenBLAS" OFF)
+    option(WHISPER_OPENBLAS              "whisper: support for OpenBLAS" OFF)
+    option(WHISPER_CUBLAS                "whisper: support for cuBLAS"   OFF)
+    option(WHISPER_CLBLAST               "whisper: use CLBlast"          OFF)
 endif()
 
-option(WHISPER_PERF                    "whisper: enable perf timings" OFF)
+option(WHISPER_PERF "whisper: enable perf timings" OFF)
 
 # sanitizers
 
@@ -119,10 +119,14 @@ if (APPLE)
         else()
             message(WARNING "CoreML framework not found")
         endif()
+
+        if (WHISPER_COREML_ALLOW_FALLBACK)
+            set(WHISPER_EXTRA_FLAGS ${WHISPER_EXTRA_FLAGS} -DWHISPER_COREML_ALLOW_FALLBACK)
+        endif()
     endif()
 endif()
 
-if (WHISPER_SUPPORT_OPENBLAS)
+if (WHISPER_OPENBLAS)
     find_library(OPENBLAS_LIB
         NAMES openblas libopenblas
         )
@@ -133,6 +137,46 @@ if (WHISPER_SUPPORT_OPENBLAS)
         set(WHISPER_EXTRA_FLAGS ${WHISPER_EXTRA_FLAGS} -DGGML_USE_OPENBLAS)
     else()
         message(WARNING "OpenBLAS not found")
+    endif()
+endif()
+
+if (WHISPER_CUBLAS)
+    cmake_minimum_required(VERSION 3.17)
+
+    find_package(CUDAToolkit)
+
+    if (CUDAToolkit_FOUND)
+        message(STATUS "cuBLAS found")
+
+        enable_language(CUDA)
+
+        set(GGML_CUDA_SOURCES ggml-cuda.cu ggml-cuda.h)
+
+        add_compile_definitions(GGML_USE_CUBLAS)
+
+        if (WHISPER_STATIC)
+            set(WHISPER_EXTRA_LIBS ${WHISPER_EXTRA_LIBS} CUDA::cudart_static CUDA::cublas_static CUDA::cublasLt_static)
+        else()
+            set(WHISPER_EXTRA_LIBS ${WHISPER_EXTRA_LIBS} CUDA::cudart CUDA::cublas CUDA::cublasLt)
+        endif()
+
+    else()
+        message(WARNING "cuBLAS not found")
+    endif()
+endif()
+
+if (WHISPER_CLBLAST)
+    find_package(CLBlast)
+    if (CLBlast_FOUND)
+        message(STATUS "CLBlast found")
+
+        set(GGML_OPENCL_SOURCES ggml-opencl.c ggml-opencl.h)
+
+        add_compile_definitions(GGML_USE_CLBLAST)
+
+        set(WHISPER_EXTRA_LIBS ${WHISPER_EXTRA_LIBS} clblast)
+    else()
+        message(WARNING "CLBlast not found")
     endif()
 endif()
 
@@ -178,9 +222,17 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES
 else()
     message(STATUS "x86 detected")
     if (MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /arch:AVX2")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:AVX2")
+            if(NOT WHISPER_NO_AVX2)
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
+                set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /arch:AVX2")
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:AVX2")
+            else()
+                if(NOT WHISPER_NO_AVX)
+                    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
+                    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /arch:AVX")
+                    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:AVX")
+                endif()
+            endif()
     else()
         if (EMSCRIPTEN)
             set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -pthread")
@@ -242,6 +294,8 @@ set(TARGET whisper)
 add_library(${TARGET}
     ggml.h
     ggml.c
+    ${GGML_CUDA_SOURCES}
+    ${GGML_OPENCL_SOURCES}
     whisper.h
     whisper.cpp
     )
@@ -271,7 +325,19 @@ if (BUILD_SHARED_LIBS)
 
     target_compile_definitions(${TARGET} PUBLIC
         WHISPER_SHARED
+        GGML_SHARED
         )
+
+    target_compile_definitions(${TARGET} PRIVATE
+        WHISPER_BUILD
+        GGML_BUILD
+        )
+endif()
+
+if (GGML_CUDA_SOURCES)
+    message(STATUS "GGML CUDA sources found, configuring CUDA architecture")
+    set_property(TARGET whisper PROPERTY CUDA_ARCHITECTURES OFF)
+    set_property(TARGET whisper PROPERTY CUDA_SELECT_NVCC_ARCH_FLAGS "Auto")
 endif()
 
 if (EMSCRIPTEN)

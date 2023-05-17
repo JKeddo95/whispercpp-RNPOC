@@ -258,7 +258,7 @@ extern "C" {
     WHISPER_API int whisper_model_n_text_head  (struct whisper_context * ctx);
     WHISPER_API int whisper_model_n_text_layer (struct whisper_context * ctx);
     WHISPER_API int whisper_model_n_mels       (struct whisper_context * ctx);
-    WHISPER_API int whisper_model_f16          (struct whisper_context * ctx);
+    WHISPER_API int whisper_model_ftype        (struct whisper_context * ctx);
     WHISPER_API int whisper_model_type         (struct whisper_context * ctx);
 
     // Token logits obtained from the last call to whisper_decode()
@@ -365,6 +365,7 @@ extern "C" {
 
         // for auto-detection, set to nullptr, "" or "auto"
         const char * language;
+        bool detect_language;
 
         // common decoding parameters:
         bool suppress_blank;    // ref: https://github.com/openai/whisper/blob/f82bc59f5ea234d4b97fb2860842ed38519f7e65/whisper/decoding.py#L89
