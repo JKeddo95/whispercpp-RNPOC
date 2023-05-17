@@ -271,6 +271,25 @@ int main(int argc, char ** argv) {
 
         // HTML for top of page and navigation
         fouthtml << "<body style='background-color: #11191f'>\n" << std::endl;
+        fouthtml << "<a href='https://datalayah.com/myaccount'>" << std::endl;
+        fouthtml << "<svg id='visual' viewBox='0 0 1080 240' width='100%' height='240' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1'>" << std::endl;
+        fouthtml << "<defs><filter id='blur1' x='-10%' y='-10%' width='120%' height='120%'>" << std::endl;
+        fouthtml << "<feFlood flood-opacity='0' result='BackgroundImageFix'></feFlood>" << std::endl;
+        fouthtml << "<feBlend mode='normal' in='SourceGraphic' in2='BackgroundImageFix' result='shape'></feBlend>" << std::endl;
+        fouthtml << "<feGaussianBlur stdDeviation='161' result='effect1_foregroundBlur'></feGaussianBlur>" << std::endl;
+        fouthtml << "</filter></defs>" << std::endl;
+        fouthtml << "<rect width='900' height='200' fill='#00c1ff'></rect>" << std::endl;
+        fouthtml << "<g filter='url(#blur1)'>" << std::endl;
+        fouthtml << "<circle cx='875' cy='447' fill='#715DF2' r='357'></circle>" << std::endl;
+        fouthtml << "<circle cx='254' cy='544' fill='#00c1ff' r='357'></circle>" << std::endl;
+        fouthtml << "<circle cx='4' cy='485' fill='#715DF2' r='357'></circle>" << std::endl;
+        fouthtml << "<circle cx='875' cy='248' fill='#715DF2' r='357'></circle>" << std::endl;
+        fouthtml << "<circle cx='679' cy='575' fill='#00c1ff' r='357'></circle>" << std::endl;
+        fouthtml << "<circle cx='166' cy='118' fill='#715DF2' r='357'></circle>" << std::endl;
+        fouthtml << "</g>" << std::endl;
+        fouthtml << "<text x='50%' y='50%' font-size='126px' dominant-baseline='middle' font-family='Titilum, Verdana, Calibri' font-weight='100' text-anchor='middle' fill='white'>Datalayah.AI!</text>" << std::endl;
+        fouthtml << "</svg>" << std::endl;
+        fouthtml << "</a>\n" << std::endl;
         fouthtml << "<h1 style='color: white' id='pageTitle'>Your Whispers: Transcription Logs</h1>" << std::endl;
         fouthtml << "<h4 style='color: white' id='currentFileName'>" << params.fname_out_html << "</h4>" << std::endl;
         fouthtml << "<a id='previouspage' href=''>Previous</a> &nbsp <a id='nextpage' href=''>Next</a>" << std::endl;
