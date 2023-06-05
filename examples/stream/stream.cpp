@@ -300,7 +300,7 @@ int main(int argc, char ** argv) {
         fouthtml << "{\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/pico.css\" />');";
         fouthtml << "\ndocument.getElementById('previouspage').href = String('./recent?offset=' + Math.max(parseInt(new URLSearchParams(window.location.search).get('offset') || 0) + 1, 0));";
         fouthtml << "\ndocument.getElementById('nextpage').href = String('./recent?offset=' + Math.max(parseInt(new URLSearchParams(window.location.search).get('offset') || 0) - 1, 0));";
-        fouthtml << "\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark'>" << std::endl;
+        fouthtml << "\n} else {\ndocument.write('<link rel=\"stylesheet\" type=\"text/css\" href=\"../pico.css\" />');\n}\n</script>\n<div &nbsp data-theme='dark' style='color:white;font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji'>" << std::endl;
         
     }
 
