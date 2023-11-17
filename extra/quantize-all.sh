@@ -10,36 +10,28 @@ fi
 qtype0="q5_0"
 qtype1="q5_1"
 upload="$1"
+declare -a filedex
 
 cd `dirname $0`
 cd ../
 
-./quantize ./models/ggml-tiny.en.bin   ./models/ggml-tiny.en-${qtype1}.bin ${qtype1}
-./quantize ./models/ggml-tiny.bin      ./models/ggml-tiny-${qtype1}.bin    ${qtype1}
+for i in `ls ./models | grep ^ggml-.*.bin | grep -v "\-q"`; do
+    m="models/$i"
+    if [ -f "$m" ]; then
+        if [ "${m##*.}" == "bin" ]; then
+            ./quantize "${m}" "${m::${#m}-4}-${qtype1}.bin" ${qtype1};
+            ./quantize "${m}" "${m::${#m}-4}-${qtype0}.bin" ${qtype0};
+            filedex+=( "${m::${#m}-4}-${qtype1}.bin" "${m::${#m}-4}-${qtype0}.bin" )
+        fi
+    fi
+done
 
-./quantize ./models/ggml-base.en.bin   ./models/ggml-base.en-${qtype1}.bin ${qtype1}
-./quantize ./models/ggml-base.bin      ./models/ggml-base-${qtype1}.bin    ${qtype1}
 
-./quantize ./models/ggml-small.en.bin  ./models/ggml-small.en-${qtype1}.bin ${qtype1}
-./quantize ./models/ggml-small.bin     ./models/ggml-small-${qtype1}.bin    ${qtype1}
-
-./quantize ./models/ggml-medium.en.bin ./models/ggml-medium.en-${qtype0}.bin ${qtype0}
-./quantize ./models/ggml-medium.bin    ./models/ggml-medium-${qtype0}.bin    ${qtype0}
-
-./quantize ./models/ggml-large.bin     ./models/ggml-large-${qtype0}.bin ${qtype0}
 
 if [ "$upload" == "1" ]; then
-    scp ./models/ggml-tiny.en-${qtype1}.bin   root@linode0:/mnt/Data/ggml/ggml-model-whisper-tiny.en-${qtype1}.bin
-    scp ./models/ggml-tiny-${qtype1}.bin      root@linode0:/mnt/Data/ggml/ggml-model-whisper-tiny-${qtype1}.bin
-
-    scp ./models/ggml-base.en-${qtype1}.bin   root@linode0:/mnt/Data/ggml/ggml-model-whisper-base.en-${qtype1}.bin
-    scp ./models/ggml-base-${qtype1}.bin      root@linode0:/mnt/Data/ggml/ggml-model-whisper-base-${qtype1}.bin
-
-    scp ./models/ggml-small.en-${qtype1}.bin  root@linode0:/mnt/Data/ggml/ggml-model-whisper-small.en-${qtype1}.bin
-    scp ./models/ggml-small-${qtype1}.bin     root@linode0:/mnt/Data/ggml/ggml-model-whisper-small-${qtype1}.bin
-
-    scp ./models/ggml-medium.en-${qtype0}.bin root@linode0:/mnt/Data/ggml/ggml-model-whisper-medium.en-${qtype0}.bin
-    scp ./models/ggml-medium-${qtype0}.bin    root@linode0:/mnt/Data/ggml/ggml-model-whisper-medium-${qtype0}.bin
-
-    scp ./models/ggml-large-${qtype0}.bin     root@linode0:/mnt/Data/ggml/ggml-model-whisper-large-${qtype0}.bin
+    for i in ${!filedex[@]}; do
+        if [ "${filedex[$i]:9:8}" != "for-test" ]; then
+            scp ${filedex[$i]} root@linode0:/mnt/Data/ggml/ggml-model-${filedex[$i]:9}
+        fi
+    done
 fi
