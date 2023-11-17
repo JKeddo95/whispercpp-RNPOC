@@ -23,6 +23,7 @@ add_library(${TARGET} STATIC
     common.cpp
     common-ggml.h
     common-ggml.cpp
+    grammar-parser.cpp
     )
 
 include(DefaultTargetOptions)
@@ -69,4 +70,5 @@ else()
     add_subdirectory(quantize)
     add_subdirectory(talk)
     add_subdirectory(talk-llama)
+    add_subdirectory(lsp)
 endif()
